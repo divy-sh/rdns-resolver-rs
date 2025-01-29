@@ -61,7 +61,53 @@ impl BytePacketBuffer {
     }
 
     fn read_qname(&mut self, mut outstr: String) -> Result<(), String> {
-        unimplemented!("Need to implement this");
+        let mut pos = self.pos();
+        let mut jumped = false;
+        let mut max_jumps = 10;
+
+        let mut delimiter = "";
+
+        loop {
+            if max_jumps < 0 {
+                return Err(format!("Max jump limit of {} exceeded", max_jumps).to_string());
+            }
+            let len = self.get(pos)?;
+            if (len & 0xC0) == 0xC0 {
+                if !jumped {
+                    self.seek(pos + 2)?;
+                }
+
+                let b2 = self.get(pos + 1)? as u16;
+                let offset = (((len as u16) ^ 0xC0) << 8) | b2;
+                pos = offset as usize;
+
+                jumped = true;
+                max_jumps -= 1;
+
+                continue;
+            }
+            else {
+                pos += 1;
+
+                if len == 0 {
+                    break;
+                }
+
+                outstr.push_str(delimiter);
+
+                let str_buffer = self.get_range(pos, len as usize)?;
+                outstr.push_str(&String::from_utf8_lossy(str_buffer).to_lowercase());
+
+                delimiter = ".";
+
+                // Move forward the full length of the label.
+                pos += len as usize;
+            }
+        }
+
+        if !jumped {
+            self.seek(pos)?;
+        }
         Ok(())
     }
     
