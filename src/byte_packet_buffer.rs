@@ -16,7 +16,7 @@ impl BytePacketBuffer {
         Ok(())
     }
 
-    fn step(&mut self, steps: usize) -> Result<(), String> {
+    pub fn step(&mut self, steps: usize) -> Result<(), String> {
         self.pos += steps;
         Ok(())
     }
@@ -32,7 +32,7 @@ impl BytePacketBuffer {
         self.pos
     }
 
-    fn read(&mut self) -> Result<u8, String> {
+    pub fn read(&mut self) -> Result<u8, String> {
         if self.pos >= 512 {
             return Err("Buffer overflow".to_string());
         }
@@ -48,19 +48,19 @@ impl BytePacketBuffer {
         Ok(&self.buf[start..start + len])
     }
 
-    fn read_u16(&mut self) -> Result<u16, String> {
+    pub fn read_u16(&mut self) -> Result<u16, String> {
         let l = self.read()? as u16;
         let r = self.read()? as u16;
         Ok(l << 8 | r)
     }
 
-    fn read_u32(&mut self) -> Result<u32, String> {
+    pub fn read_u32(&mut self) -> Result<u32, String> {
         let l = self.read_u16()? as u32;
         let r = self.read_u16()? as u32;
         Ok(l << 16 | r)
     }
 
-    fn read_qname(&mut self, mut outstr: String) -> Result<(), String> {
+    pub fn read_qname(&mut self, mut outstr: String) -> Result<(), String> {
         let mut pos = self.pos();
         let mut jumped = false;
         let mut max_jumps = 10;
@@ -100,7 +100,6 @@ impl BytePacketBuffer {
 
                 delimiter = ".";
 
-                // Move forward the full length of the label.
                 pos += len as usize;
             }
         }
@@ -111,4 +110,43 @@ impl BytePacketBuffer {
         Ok(())
     }
     
+    pub fn write(&mut self, val: u8) -> Result<(), String> {
+        if self.pos >= 512 {
+            return Err("Buffer overflow".to_string());
+        }
+        self.buf[self.pos] = val;
+        self.pos += 1;
+        Ok(())
+    }
+
+    pub fn write_u8(&mut self, val: u8) -> Result<(), String> {
+        self.write(val)?;
+        Ok(())
+    }
+
+    pub fn write_u16(&mut self, val: u16) -> Result<(), String> {
+        self.write((val >> 8) as u8)?;
+        self.write(val as u8)?;
+        Ok(())
+    }
+
+    pub fn write_u32(&mut self, val: u32) -> Result<(), String> {
+        self.write_u16((val >> 16) as u16)?;
+        self.write_u16(val as u16)?;
+        Ok(())
+    }
+
+    pub fn write_qname(&mut self, qname: &str) -> Result<(), String> {
+        for part in qname.split('.') {
+            if part.len() > 63 {
+                return Err("DNS lable too long".to_string());
+            }
+            self.write(part.len() as u8)?;
+            for b in part.bytes() {
+                self.write(b)?;
+            }
+        }
+        self.write(0)?;
+        Ok(())
+    }
 }
