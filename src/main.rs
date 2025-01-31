@@ -31,11 +31,6 @@ fn main() -> Result<(), String> {
 
     let mut req_buffer = BytePacketBuffer::new();
     packet.write(&mut req_buffer)?;
-    
-    for i in 0..req_buffer.pos {
-        print!("{:02X} ", req_buffer.buf[i]);
-    }
-    println!();
 
     socket.send_to(&req_buffer.buf[0..req_buffer.pos], server).unwrap();
 
