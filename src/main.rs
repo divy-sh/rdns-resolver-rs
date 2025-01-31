@@ -5,6 +5,7 @@ mod query_type;
 mod res_code;
 mod dns_question;
 mod dns_header;
+mod server;
 
 use std::net::UdpSocket;
 use byte_packet_buffer::BytePacketBuffer;
@@ -13,8 +14,8 @@ use query_type::QueryType;
 use dns_question::DnsQuestion;
 
 fn main() -> Result<(), String> {
-    let qname = "google.com";
-    let qtype = QueryType::A;
+    let qname = "www.yahoo.com";
+    let qtype = QueryType::MX;
 
     let server = ("8.8.8.8", 53);
 

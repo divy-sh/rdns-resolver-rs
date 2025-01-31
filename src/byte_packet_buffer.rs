@@ -60,7 +60,7 @@ impl BytePacketBuffer {
         Ok(l << 16 | r)
     }
 
-    pub fn read_qname(&mut self, mut outstr: String) -> Result<(), String> {
+    pub fn read_qname(&mut self, outstr: &mut String) -> Result<(), String> {
         let mut pos = self.pos();
         let mut jumped = false;
         let mut max_jumps = 10;

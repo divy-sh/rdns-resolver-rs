@@ -42,8 +42,8 @@ pub enum DnsRecord {
 
 impl DnsRecord {
     pub fn read(buffer: &mut BytePacketBuffer) -> Result<DnsRecord, String> {
-        let domain = String::new();
-        buffer.read_qname( domain.clone())?;
+        let mut domain = String::new();
+        buffer.read_qname( &mut domain)?;
 
         let qtype_num = buffer.read_u16()?;
         let qtype = QueryType::from_num(qtype_num);
@@ -85,8 +85,8 @@ impl DnsRecord {
                 })
             }
             QueryType::NS => {
-                let host = String::new();
-                buffer.read_qname(host.clone())?;
+                let mut host = String::new();
+                buffer.read_qname(&mut host)?;
 
                 Ok(DnsRecord::NS {
                     domain: domain,
@@ -95,8 +95,8 @@ impl DnsRecord {
                 })
             }
             QueryType::CNAME => {
-                let host = String::new();
-                buffer.read_qname(host.clone())?;
+                let mut host = String::new();
+                buffer.read_qname(&mut host)?;
 
                 Ok(DnsRecord::CNAME {
                     domain: domain,
@@ -106,8 +106,8 @@ impl DnsRecord {
             }
             QueryType::MX => {
                 let priority = buffer.read_u16()?;
-                let host = String::new();
-                buffer.read_qname(host.clone())?;
+                let mut host = String::new();
+                buffer.read_qname(&mut host)?;
 
                 Ok(DnsRecord::MX {
                     domain: domain,
