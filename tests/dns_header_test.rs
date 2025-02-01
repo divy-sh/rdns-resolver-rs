@@ -3,7 +3,7 @@ use rdns_resolver_rs::byte_packet_buffer::BytePacketBuffer;
 use rdns_resolver_rs::res_code::ResultCode;
 
 #[test]
-fn test_dns_header_write() {
+fn test_dns_header_read_write() {
     let mut buffer = BytePacketBuffer::new();
     let header = DnsHeader {
         id: 1234,
