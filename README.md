@@ -1,13 +1,35 @@
-# dns-rust
+# rdns-resolver-rs
 
-A DNS implementation in Rust.
-
-## Overview
-
-This project is a DNS server written in Rust, designed to handle DNS queries efficiently and securely. It aims to provide a learning resource for understanding DNS protocols and Rust programming.
+A DNS resolver implemented in Rust, designed to handle DNS queries efficiently. This project showcases the power of Rust in building network services with safety, speed, and concurrency.
 
 ## Features
+- Fast DNS query resolution
+- Modular design for easy extension
+- Lightweight and memory-efficient
+- Written in Rust for performance and safety
 
-- **DNS Query Handling**: Processes standard DNS queries.
-- **Modular Design**: Clean separation of concerns for easy understanding and extension.
-- **Performance**: Utilizes Rust's concurrency features for efficient query handling.
+## Installation
+
+To build and run this project, you'll need Rust installed. You can install Rust by following the instructions on the [official website](https://www.rust-lang.org/).
+
+Clone the repository:
+
+```bash
+git clone https://github.com/divy-sh/rdns-resolver-rs.git
+cd rdns-resolver-rs
+```
+
+Then, build the project:
+```bash
+cargo build --release
+```
+
+## Usage
+
+Once built, you can start the DNS resolver. The server will start listening on the port (2053). You can configure the server as per your requirements.
+
+## TODO
+
+- Choose one of the 13 root name servers instead of relying on just one. - https://www.internic.net/domain/named.root.
+- generalize the code by extracting the placeholder configurations out of the code, into a config file.
+- More tests.
