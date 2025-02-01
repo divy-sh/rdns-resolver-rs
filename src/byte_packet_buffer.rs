@@ -41,7 +41,7 @@ impl BytePacketBuffer {
         Ok(val)
     }
 
-    fn get_range(&mut self, start: usize, len: usize) -> Result<&[u8], String> {
+    pub fn get_range(&mut self, start: usize, len: usize) -> Result<&[u8], String> {
         if start + len >= 512 {
             return Err("Buffer overflow on reading provided length".to_string());
         }
