@@ -11,7 +11,7 @@ impl BytePacketBuffer {
         }
     }
 
-    fn seek(&mut self, pos: usize) -> Result<(), String> {
+    pub fn seek(&mut self, pos: usize) -> Result<(), String> {
         self.pos = pos;
         Ok(())
     }
@@ -21,7 +21,7 @@ impl BytePacketBuffer {
         Ok(())
     }
 
-    fn get(&self, pos: usize) -> Result<u8, String> {
+    pub fn get(&self, pos: usize) -> Result<u8, String> {
         if pos >= 512 {
             return Err("Buffer overflow".to_string());
         }
