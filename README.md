@@ -30,6 +30,6 @@ Once built, you can start the DNS resolver. The server will start listening on t
 
 ## TODO
 
-- Choose one of the 13 root name servers instead of relying on just one. - https://www.internic.net/domain/named.root.
+- Figure out why some of the root name servers don't respond
 - generalize the code by extracting the placeholder configurations out of the code, into a config file.
 - More tests.
