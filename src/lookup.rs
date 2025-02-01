@@ -1,11 +1,8 @@
 use std::net::{Ipv4Addr, UdpSocket};
+// use rand::{seq::SliceRandom, thread_rng};
+
 use crate::{
-    byte_packet_buffer::BytePacketBuffer,
-    dns_packet::DnsPacket,
-    dns_record::DnsRecord,
-    query_type::QueryType,
-    dns_question::DnsQuestion,
-    res_code::ResultCode,
+    byte_packet_buffer::BytePacketBuffer, dns_packet::DnsPacket, dns_question::DnsQuestion, dns_record::DnsRecord, query_type::QueryType, res_code::ResultCode, root_name_servers::{RootNameServer, ROOT_NAME_SERVERS}
 };
 
 pub fn handle_query(socket: &UdpSocket) -> Result<(), String> {
@@ -24,8 +21,11 @@ pub fn handle_query(socket: &UdpSocket) -> Result<(), String> {
 
     if let Some(question) = request.questions.pop() {
         println!("Received query: {:?}", question);
+        // currently choosing the 1st one as some of them are not working
+        // let root_name_server = ROOT_NAME_SERVERS.choose(&mut thread_rng()).unwrap();
+        let root_name_server = &ROOT_NAME_SERVERS[0];
 
-        if let Ok(result) = recursive_lookup(&question.name, question.qtype) {
+        if let Ok(result) = recursive_lookup(&question.name, question.qtype, root_name_server) {
             packet.questions.push(question);
             packet.header.rescode = result.header.rescode;
             packet.header.answers = result.answers.len() as u16;
@@ -58,8 +58,8 @@ pub fn handle_query(socket: &UdpSocket) -> Result<(), String> {
     Ok(())
 }
 
-fn recursive_lookup(qname: &str, qtype: QueryType) -> Result<DnsPacket, String> {
-    let mut ns = "198.41.0.4".parse::<Ipv4Addr>().unwrap();
+fn recursive_lookup(qname: &str, qtype: QueryType, root_name_server: &RootNameServer) -> Result<DnsPacket, String> {
+    let mut ns = root_name_server.a;
 
     loop {
         println!("attempting lookup of {:?} {} with ns {}", qtype, qname, ns);
@@ -73,7 +73,7 @@ fn recursive_lookup(qname: &str, qtype: QueryType) -> Result<DnsPacket, String> 
                     DnsRecord::A { .. } | DnsRecord::AAAA { .. } => return Ok(response),
                     DnsRecord::CNAME { host, .. } => {
                         println!("CNAME found: Resolving {}", host);
-                        return recursive_lookup(host, qtype);
+                        return recursive_lookup(host, qtype, root_name_server);
                     }
                     _ => continue,
                 }
@@ -91,7 +91,7 @@ fn recursive_lookup(qname: &str, qtype: QueryType) -> Result<DnsPacket, String> 
             Some(x) => x,
             None => return Ok(response),
         };
-        let recursive_response = recursive_lookup(&new_ns_name, QueryType::A)?;
+        let recursive_response = recursive_lookup(&new_ns_name, QueryType::A, root_name_server)?;
         if let Some(new_ns) = recursive_response.get_random_a() {
             ns = new_ns;
         } else {
