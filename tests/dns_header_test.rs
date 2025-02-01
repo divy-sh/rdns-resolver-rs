@@ -1,6 +1,8 @@
-use rdns_resolver_rs::dns_header::DnsHeader;
-use rdns_resolver_rs::byte_packet_buffer::BytePacketBuffer;
-use rdns_resolver_rs::res_code::ResultCode;
+use rdns_resolver_rs::{
+    dns_header::DnsHeader,
+    byte_packet_buffer::BytePacketBuffer,
+    res_code::ResultCode,
+};
 
 #[test]
 fn test_dns_header_read_write() {

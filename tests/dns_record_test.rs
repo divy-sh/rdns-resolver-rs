@@ -1,6 +1,8 @@
-use rdns_resolver_rs::dns_record::DnsRecord;
-use rdns_resolver_rs::byte_packet_buffer::BytePacketBuffer;
 use std::net::{Ipv4Addr, Ipv6Addr};
+use rdns_resolver_rs::{
+    dns_record::DnsRecord,
+    byte_packet_buffer::BytePacketBuffer,
+};
 
 #[test]
 fn test_dns_record_a() {

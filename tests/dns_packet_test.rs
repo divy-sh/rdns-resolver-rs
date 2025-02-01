@@ -1,10 +1,12 @@
-use rdns_resolver_rs::dns_packet::DnsPacket;
-use rdns_resolver_rs::byte_packet_buffer::BytePacketBuffer;
-use rdns_resolver_rs::dns_header::DnsHeader;
-use rdns_resolver_rs::dns_question::DnsQuestion;
-use rdns_resolver_rs::dns_record::DnsRecord;
-use rdns_resolver_rs::query_type::QueryType;
 use std::net::Ipv4Addr;
+use rdns_resolver_rs::{
+dns_packet::DnsPacket,
+    byte_packet_buffer::BytePacketBuffer,
+    dns_header::DnsHeader,
+    dns_question::DnsQuestion,
+    dns_record::DnsRecord,
+    query_type::QueryType,
+};
 
 #[test]
 fn test_dns_packet_creation() {

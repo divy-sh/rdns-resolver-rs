@@ -1,10 +1,12 @@
 use std::net::{Ipv4Addr, UdpSocket};
-use crate::byte_packet_buffer::BytePacketBuffer;
-use crate::dns_packet::DnsPacket;
-use crate::dns_record::DnsRecord;
-use crate::query_type::QueryType;
-use crate::dns_question::DnsQuestion;
-use crate::res_code::ResultCode;
+use crate::{
+    byte_packet_buffer::BytePacketBuffer,
+    dns_packet::DnsPacket,
+    dns_record::DnsRecord,
+    query_type::QueryType,
+    dns_question::DnsQuestion,
+    res_code::ResultCode,
+};
 
 pub fn handle_query(socket: &UdpSocket) -> Result<(), String> {
     let mut req_buffer = BytePacketBuffer::new();

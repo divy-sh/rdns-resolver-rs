@@ -1,10 +1,12 @@
 use std::net::Ipv4Addr;
 
-use crate::byte_packet_buffer::BytePacketBuffer;
-use crate::dns_header::DnsHeader;
-use crate::dns_question::DnsQuestion;
-use crate::dns_record::DnsRecord;
-use crate::query_type::QueryType;
+use crate::{
+    byte_packet_buffer::BytePacketBuffer,
+    dns_header::DnsHeader,
+    dns_question::DnsQuestion,
+    dns_record::DnsRecord,
+    query_type::QueryType,
+};
 
 #[derive(Clone, Debug)]
 pub struct DnsPacket {

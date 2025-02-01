@@ -1,6 +1,7 @@
-use crate::byte_packet_buffer::BytePacketBuffer;
-use crate::res_code::ResultCode;
-
+use crate::{
+    byte_packet_buffer::BytePacketBuffer,
+    res_code::ResultCode,
+};
 
 #[derive(Clone, Debug)]
 pub struct DnsHeader {

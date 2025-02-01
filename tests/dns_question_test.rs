@@ -1,6 +1,8 @@
-use rdns_resolver_rs::byte_packet_buffer::BytePacketBuffer;
-use rdns_resolver_rs::query_type::QueryType;
-use rdns_resolver_rs::dns_question::DnsQuestion;
+use rdns_resolver_rs::{
+    byte_packet_buffer::BytePacketBuffer,
+    query_type::QueryType,
+    dns_question::DnsQuestion,
+};
 
 #[cfg(test)]
 mod tests {
