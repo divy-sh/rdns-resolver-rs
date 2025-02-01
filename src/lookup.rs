@@ -55,28 +55,6 @@ pub fn handle_query(socket: &UdpSocket) -> Result<(), String> {
     Ok(())
 }
 
-pub fn lookup(qname: &str, qtype: QueryType, server: (Ipv4Addr, u16)) -> Result<DnsPacket, String> {
-    let socket = UdpSocket::bind(("0.0.0.0", 43210)).unwrap();
-
-    let mut packet = DnsPacket::new();
-
-    packet.header.id = 6666;
-    packet.header.questions = 1;
-    packet.header.recursion_desired = true;
-    packet
-        .questions
-        .push(DnsQuestion::new(qname.to_string(), qtype));
-
-    let mut req_buffer = BytePacketBuffer::new();
-    packet.write(&mut req_buffer)?;
-    socket.send_to(&req_buffer.buf[0..req_buffer.pos], server).unwrap();
-
-    let mut res_buffer = BytePacketBuffer::new();
-    socket.recv_from(&mut res_buffer.buf).unwrap();
-
-    DnsPacket::from_buffer(&mut res_buffer)
-}
-
 fn recursive_lookup(qname: &str, qtype: QueryType) -> Result<DnsPacket, String> {
     let mut ns = "198.41.0.4".parse::<Ipv4Addr>().unwrap();
 
@@ -115,4 +93,26 @@ fn recursive_lookup(qname: &str, qtype: QueryType) -> Result<DnsPacket, String> 
             return Ok(response);
         }
     }
+}
+
+fn lookup(qname: &str, qtype: QueryType, server: (Ipv4Addr, u16)) -> Result<DnsPacket, String> {
+    let socket = UdpSocket::bind(("0.0.0.0", 43210)).unwrap();
+
+    let mut packet = DnsPacket::new();
+
+    packet.header.id = 6666;
+    packet.header.questions = 1;
+    packet.header.recursion_desired = true;
+    packet
+        .questions
+        .push(DnsQuestion::new(qname.to_string(), qtype));
+
+    let mut req_buffer = BytePacketBuffer::new();
+    packet.write(&mut req_buffer)?;
+    socket.send_to(&req_buffer.buf[0..req_buffer.pos], server).unwrap();
+
+    let mut res_buffer = BytePacketBuffer::new();
+    socket.recv_from(&mut res_buffer.buf).unwrap();
+
+    DnsPacket::from_buffer(&mut res_buffer)
 }
