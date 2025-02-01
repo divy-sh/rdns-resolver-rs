@@ -1,6 +1,7 @@
 use std::net::{Ipv4Addr, UdpSocket};
 use crate::byte_packet_buffer::BytePacketBuffer;
 use crate::dns_packet::DnsPacket;
+use crate::dns_record::DnsRecord;
 use crate::query_type::QueryType;
 use crate::dns_question::DnsQuestion;
 use crate::res_code::ResultCode;
@@ -60,33 +61,35 @@ fn recursive_lookup(qname: &str, qtype: QueryType) -> Result<DnsPacket, String> 
 
     loop {
         println!("attempting lookup of {:?} {} with ns {}", qtype, qname, ns);
-
         let ns_copy = ns;
-
         let server = (ns_copy, 53);
         let response = lookup(qname, qtype, server)?;
 
         if !response.answers.is_empty() && response.header.rescode == ResultCode::NOERROR {
-            return Ok(response);
+            for answer in &response.answers {
+                match answer {
+                    DnsRecord::A { .. } | DnsRecord::AAAA { .. } => return Ok(response),
+                    DnsRecord::CNAME { host, .. } => {
+                        println!("CNAME found: Resolving {}", host);
+                        return recursive_lookup(host, qtype);
+                    }
+                    _ => continue,
+                }
+            }
         }
-
         if response.header.rescode == ResultCode::NXDOMAIN {
             return Ok(response);
         }
-
         if let Some(new_ns) = response.get_resolved_ns(qname) {
             ns = new_ns;
 
             continue;
         }
-
         let new_ns_name = match response.get_unresolved_ns(qname) {
             Some(x) => x,
             None => return Ok(response),
         };
-
         let recursive_response = recursive_lookup(&new_ns_name, QueryType::A)?;
-
         if let Some(new_ns) = recursive_response.get_random_a() {
             ns = new_ns;
         } else {
