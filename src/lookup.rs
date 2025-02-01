@@ -17,6 +17,7 @@ pub fn handle_query(socket: &UdpSocket) -> Result<(), String> {
     packet.header.recursion_desired = true;
     packet.header.recursion_available = true;
     packet.header.response = true;
+    packet.header.questions = 1;
 
     if let Some(question) = request.questions.pop() {
         println!("Received query: {:?}", question);
@@ -24,6 +25,7 @@ pub fn handle_query(socket: &UdpSocket) -> Result<(), String> {
         if let Ok(result) = recursive_lookup(&question.name, question.qtype) {
             packet.questions.push(question);
             packet.header.rescode = result.header.rescode;
+            packet.header.answers = result.answers.len() as u16;
 
             for rec in result.answers {
                 println!("Answer: {:?}", rec);
