@@ -17,11 +17,10 @@ pub fn handle_queries(
     loop {
         if let Ok((_, src)) = req_socket.recv_from(&mut req_buffer.buf) {
             // Spawn a new thread to handle the query
-            let req_socket = req_socket.try_clone().unwrap(); // Clone to use in the thread
-            let query_socket = query_socket.try_clone().unwrap(); // Clone to use in the thread
-            let cache = Arc::clone(&cache); // Clone Arc for sharing the cache in the thread
-            let mut req_buffer = req_buffer.clone(); // Clone the request buffer to be used in the thread
-
+            let req_socket = req_socket.try_clone().unwrap();
+            let query_socket = query_socket.try_clone().unwrap();
+            let cache = Arc::clone(&cache);
+            let mut req_buffer = req_buffer.clone();
             thread::spawn(move || {
                 let mut res_buffer = BytePacketBuffer::default();
                 let packet =
