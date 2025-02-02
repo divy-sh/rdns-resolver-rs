@@ -8,6 +8,8 @@ pub struct RootNameServer {
     pub ttl: u32,
 }
 
+pub static MAX_RECURSION_DEPTH: i32 = 1;
+
 pub static ROOT_NAME_SERVERS: LazyLock<[RootNameServer; 13]> = LazyLock::new(|| [
     RootNameServer {
         name: "A.ROOT-SERVERS.NET".to_string(),
