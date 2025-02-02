@@ -10,22 +10,37 @@ use crate::{
     utils::ROOT_NAME_SERVERS,
 };
 
-pub fn handle_queries(req_socket: &UdpSocket, query_socket: &UdpSocket, cache: &mut LRUCache) -> Result<(), String> {
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+pub fn handle_queries(req_socket: &UdpSocket, query_socket: &UdpSocket, cache: Arc<Mutex<LRUCache>>) -> Result<(), String> {
     let mut req_buffer = BytePacketBuffer::new();
-    match req_socket.recv_from(&mut req_buffer.buf) {
-        Ok((_, src)) => {
-            let mut res_buffer = BytePacketBuffer::new();
-            let packet = handle_query(query_socket, &mut req_buffer, cache).unwrap();
-            packet.write(&mut res_buffer).unwrap();
-            let len = res_buffer.pos;
-            let data = res_buffer.get_range(0, len).unwrap();
-            req_socket.send_to(data, src).unwrap();
-            req_socket.send_to(data, src).unwrap();
+
+    loop {
+        match req_socket.recv_from(&mut req_buffer.buf) {
+            Ok((_, src)) => {
+                // Spawn a new thread to handle the query
+                let req_socket = req_socket.try_clone().unwrap();  // Clone to use in the thread
+                let query_socket = query_socket.try_clone().unwrap();  // Clone to use in the thread
+                let cache = Arc::clone(&cache);  // Clone Arc for sharing the cache in the thread
+                let mut req_buffer = req_buffer.clone();  // Clone the request buffer to be used in the thread
+                
+                thread::spawn(move || {
+                    let mut res_buffer = BytePacketBuffer::new();
+                    let packet = handle_query(&query_socket, &mut req_buffer, &mut cache.lock().unwrap()).unwrap();
+                    if let Err(_) = packet.write(&mut res_buffer) {
+                        println!("Packet size overflow, truncated.");
+                    }
+                    let len = res_buffer.pos;
+                    let data = res_buffer.get_range(0, len).unwrap();
+                    req_socket.send_to(data, src).unwrap();
+                });
+            }
+            Err(..) => {}
         }
-        Err(..) => {}
     }
-    Ok(())
 }
+
 
 pub fn handle_query(query_socket: &UdpSocket, req_buffer: &mut BytePacketBuffer, cache: &mut LRUCache) -> Result<DnsPacket, String> {
     let mut request = DnsPacket::from_buffer(req_buffer)?;
@@ -65,6 +80,7 @@ fn recursive_lookup(query_socket: &UdpSocket, qname: &str, qtype: QueryType, mut
         let ns_copy = ns;
         let server = (ns_copy, 53);
         let response = lookup(query_socket, qname, qtype, server)?;
+        println!("{:?}", response);
         if response.header.rescode == ResultCode::NXDOMAIN {
             return Ok(response);
         }
@@ -76,7 +92,7 @@ fn recursive_lookup(query_socket: &UdpSocket, qname: &str, qtype: QueryType, mut
                         println!("CNAME found: Resolving {}", host);
                         return recursive_lookup(query_socket, host, qtype, ns);
                     }
-                    _ => continue,
+                    _ => return Ok(response),
                 }
             }
         }

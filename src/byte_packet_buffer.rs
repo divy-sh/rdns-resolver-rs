@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct BytePacketBuffer {
     pub buf: [u8; 512],
     pub pos: usize,
@@ -112,6 +113,7 @@ impl BytePacketBuffer {
     
     pub fn write(&mut self, val: u8) -> Result<(), String> {
         if self.pos >= 512 {
+            self.pos = 511;
             return Err("Buffer overflow".to_string());
         }
         self.buf[self.pos] = val;

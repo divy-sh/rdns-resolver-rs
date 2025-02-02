@@ -30,6 +30,7 @@ Once built, you can start the DNS resolver. The server will start listening on t
 
 ## TODO
 
-- Figure out why some of the root name servers don't respond
+- Figure out why some of the root name servers don't respond.
 - generalize the code by extracting the placeholder configurations out of the code, into a config file.
 - More tests.
+- Concurrency.
