@@ -1,12 +1,15 @@
+use rand::Rng;
+use std::{
+    net::{Ipv4Addr, UdpSocket},
+    sync::{Arc, Mutex},
+    thread,
+};
+
 use crate::{
     byte_packet_buffer::BytePacketBuffer, dns_packet::DnsPacket, dns_question::DnsQuestion,
     dns_record::DnsRecord, lru_cache::LRUCache, query_type::QueryType, res_code::ResultCode,
     utils::ROOT_NAME_SERVERS,
 };
-use std::net::{Ipv4Addr, UdpSocket};
-
-use std::sync::{Arc, Mutex};
-use std::thread;
 
 pub fn handle_queries(
     req_socket: &UdpSocket,
@@ -129,7 +132,8 @@ fn lookup(
 ) -> Result<DnsPacket, String> {
     let mut packet = DnsPacket::default();
 
-    packet.header.id = 6666;
+    let mut rng = rand::thread_rng();
+    packet.header.id = rng.gen::<u16>();
     packet.header.questions = 1;
     packet.header.recursion_desired = true;
     packet

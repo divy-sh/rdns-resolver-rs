@@ -26,7 +26,15 @@ cargo build --release
 
 ## Usage
 
-Once built, you can start the DNS resolver. The server will start listening on the port (2053). You can configure the server as per your requirements.
+Once the build is complete, go to the following directory.
+```bash
+rdns-resolver-rs/target/release/
+```
+To start the DNS resolver, run the following command in the above directory. 
+```bash
+./rdns_resolver_rs
+```
+The server will start listening on the port (2053). You can configure the server port by changing the REQ_PORT in utils.rs.
 
 ## TODO
 
@@ -37,5 +45,5 @@ Once built, you can start the DNS resolver. The server will start listening on t
 
 # 0.1.1
 
-- Implemented concurrency, but since the project was meant for learning how dns resolvers work, it may or may not work properly and may produced unexpected results.
-- Added remaining tests for LRU Cache implementation.
+- Implement concurrency, but since the project was meant for learning how dns resolvers work, it may or may not work properly and may produce unexpected results.
+- Add remaining tests for LRU Cache implementation.

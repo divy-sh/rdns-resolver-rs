@@ -8,7 +8,11 @@ pub struct RootNameServer {
     pub ttl: u32,
 }
 
-pub static MAX_RECURSION_DEPTH: i32 = 1;
+pub static LOCAL_HOST: &str = "0.0.0.0";
+
+pub static REQ_PORT: u16 = 2053;
+
+pub static QUERY_PORT: u16 = 43210;
 
 pub static ROOT_NAME_SERVERS: LazyLock<[RootNameServer; 13]> = LazyLock::new(|| {
     [
