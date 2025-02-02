@@ -30,7 +30,7 @@ Once the build is complete, go to the following directory.
 ```bash
 rdns-resolver-rs/target/release/
 ```
-To start the DNS resolver, run the following command in the above directory. 
+To start the DNS resolver, run the following command. 
 ```bash
 ./rdns_resolver_rs
 ```
