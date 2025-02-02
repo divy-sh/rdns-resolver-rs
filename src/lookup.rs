@@ -10,10 +10,25 @@ use crate::{
     utils::ROOT_NAME_SERVERS,
 };
 
-pub fn handle_query(req_socket: &UdpSocket, query_socket: &UdpSocket, cache: &mut LRUCache) -> Result<(), String> {
+pub fn handle_queries(req_socket: &UdpSocket, query_socket: &UdpSocket, cache: &mut LRUCache) -> Result<(), String> {
     let mut req_buffer = BytePacketBuffer::new();
-    let (_, src) = req_socket.recv_from(&mut req_buffer.buf).unwrap();
-    let mut request = DnsPacket::from_buffer(&mut req_buffer)?;
+    match req_socket.recv_from(&mut req_buffer.buf) {
+        Ok((_, src)) => {
+            let mut res_buffer = BytePacketBuffer::new();
+            let packet = handle_query(query_socket, &mut req_buffer, cache).unwrap();
+            packet.write(&mut res_buffer).unwrap();
+            let len = res_buffer.pos;
+            let data = res_buffer.get_range(0, len).unwrap();
+            req_socket.send_to(data, src).unwrap();
+            req_socket.send_to(data, src).unwrap();
+        }
+        Err(..) => {}
+    }
+    Ok(())
+}
+
+pub fn handle_query(query_socket: &UdpSocket, req_buffer: &mut BytePacketBuffer, cache: &mut LRUCache) -> Result<DnsPacket, String> {
+    let mut request = DnsPacket::from_buffer(req_buffer)?;
     let mut packet = DnsPacket::new();
     packet.header.id = request.header.id;
     packet.header.recursion_desired = true;
@@ -41,13 +56,7 @@ pub fn handle_query(req_socket: &UdpSocket, query_socket: &UdpSocket, cache: &mu
         packet.header.rescode = ResultCode::FORMERR;
     }
 
-    let mut res_buffer = BytePacketBuffer::new();
-    packet.write(&mut res_buffer)?;
-    let len = res_buffer.pos;
-    let data = res_buffer.get_range(0, len)?;
-    req_socket.send_to(data, src).unwrap();
-
-    Ok(())
+    Ok(packet)
 }
 
 fn recursive_lookup(query_socket: &UdpSocket, qname: &str, qtype: QueryType, mut ns: Ipv4Addr) -> Result<DnsPacket, String> {
