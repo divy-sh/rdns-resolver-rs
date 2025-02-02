@@ -1,50 +1,50 @@
-use std::net::{Ipv4Addr, UdpSocket};
 use crate::{
-    byte_packet_buffer::BytePacketBuffer,
-    dns_packet::DnsPacket,
-    dns_question::DnsQuestion,
-    dns_record::DnsRecord,
-    lru_cache::LRUCache,
-    query_type::QueryType,
-    res_code::ResultCode,
+    byte_packet_buffer::BytePacketBuffer, dns_packet::DnsPacket, dns_question::DnsQuestion,
+    dns_record::DnsRecord, lru_cache::LRUCache, query_type::QueryType, res_code::ResultCode,
     utils::ROOT_NAME_SERVERS,
 };
+use std::net::{Ipv4Addr, UdpSocket};
 
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-pub fn handle_queries(req_socket: &UdpSocket, query_socket: &UdpSocket, cache: Arc<Mutex<LRUCache>>) -> Result<(), String> {
-    let mut req_buffer = BytePacketBuffer::new();
-
+pub fn handle_queries(
+    req_socket: &UdpSocket,
+    query_socket: &UdpSocket,
+    cache: Arc<Mutex<LRUCache>>,
+) -> Result<(), String> {
+    let mut req_buffer = BytePacketBuffer::default();
     loop {
-        match req_socket.recv_from(&mut req_buffer.buf) {
-            Ok((_, src)) => {
-                // Spawn a new thread to handle the query
-                let req_socket = req_socket.try_clone().unwrap();  // Clone to use in the thread
-                let query_socket = query_socket.try_clone().unwrap();  // Clone to use in the thread
-                let cache = Arc::clone(&cache);  // Clone Arc for sharing the cache in the thread
-                let mut req_buffer = req_buffer.clone();  // Clone the request buffer to be used in the thread
-                
-                thread::spawn(move || {
-                    let mut res_buffer = BytePacketBuffer::new();
-                    let packet = handle_query(&query_socket, &mut req_buffer, &mut cache.lock().unwrap()).unwrap();
-                    if let Err(_) = packet.write(&mut res_buffer) {
-                        println!("Packet size overflow, truncated.");
-                    }
-                    let len = res_buffer.pos;
-                    let data = res_buffer.get_range(0, len).unwrap();
-                    req_socket.send_to(data, src).unwrap();
-                });
-            }
-            Err(..) => {}
+        if let Ok((_, src)) = req_socket.recv_from(&mut req_buffer.buf) {
+            // Spawn a new thread to handle the query
+            let req_socket = req_socket.try_clone().unwrap(); // Clone to use in the thread
+            let query_socket = query_socket.try_clone().unwrap(); // Clone to use in the thread
+            let cache = Arc::clone(&cache); // Clone Arc for sharing the cache in the thread
+            let mut req_buffer = req_buffer.clone(); // Clone the request buffer to be used in the thread
+
+            thread::spawn(move || {
+                let mut res_buffer = BytePacketBuffer::default();
+                let packet =
+                    handle_query(&query_socket, &mut req_buffer, &mut cache.lock().unwrap())
+                        .unwrap();
+                if packet.write(&mut res_buffer).is_err() {
+                    println!("Packet size overflow, truncated.");
+                }
+                let len = res_buffer.pos;
+                let data = res_buffer.get_range(0, len).unwrap();
+                req_socket.send_to(data, src).unwrap();
+            });
         }
     }
 }
 
-
-pub fn handle_query(query_socket: &UdpSocket, req_buffer: &mut BytePacketBuffer, cache: &mut LRUCache) -> Result<DnsPacket, String> {
+pub fn handle_query(
+    query_socket: &UdpSocket,
+    req_buffer: &mut BytePacketBuffer,
+    cache: &mut LRUCache,
+) -> Result<DnsPacket, String> {
     let mut request = DnsPacket::from_buffer(req_buffer)?;
-    let mut packet = DnsPacket::new();
+    let mut packet = DnsPacket::default();
     packet.header.id = request.header.id;
     packet.header.recursion_desired = true;
     packet.header.recursion_available = true;
@@ -58,8 +58,12 @@ pub fn handle_query(query_socket: &UdpSocket, req_buffer: &mut BytePacketBuffer,
             }
             None => {
                 let root_name_server = &ROOT_NAME_SERVERS[0];
-                if let Ok(result) = recursive_lookup(query_socket, 
-                    &question.name, question.qtype, root_name_server.a) {
+                if let Ok(result) = recursive_lookup(
+                    query_socket,
+                    &question.name,
+                    question.qtype,
+                    root_name_server.a,
+                ) {
                     cache.put(&question.name, &result);
                     populate_dns_packet(&mut packet, question, &result);
                 } else {
@@ -74,7 +78,12 @@ pub fn handle_query(query_socket: &UdpSocket, req_buffer: &mut BytePacketBuffer,
     Ok(packet)
 }
 
-fn recursive_lookup(query_socket: &UdpSocket, qname: &str, qtype: QueryType, mut ns: Ipv4Addr) -> Result<DnsPacket, String> {
+fn recursive_lookup(
+    query_socket: &UdpSocket,
+    qname: &str,
+    qtype: QueryType,
+    mut ns: Ipv4Addr,
+) -> Result<DnsPacket, String> {
     loop {
         println!("attempting lookup of {:?} {} with ns {}", qtype, qname, ns);
         let ns_copy = ns;
@@ -92,7 +101,7 @@ fn recursive_lookup(query_socket: &UdpSocket, qname: &str, qtype: QueryType, mut
                         println!("CNAME found: Resolving {}", host);
                         return recursive_lookup(query_socket, host, qtype, ns);
                     }
-                    _ => return Ok(response),
+                    _ => continue,
                 }
             }
         }
@@ -105,7 +114,7 @@ fn recursive_lookup(query_socket: &UdpSocket, qname: &str, qtype: QueryType, mut
             Some(x) => x,
             None => return Ok(response),
         };
-        let recursive_response = recursive_lookup(query_socket,&new_ns_name, QueryType::A, ns)?;
+        let recursive_response = recursive_lookup(query_socket, new_ns_name, QueryType::A, ns)?;
         if let Some(new_ns) = recursive_response.get_random_a() {
             ns = new_ns;
         } else {
@@ -114,8 +123,13 @@ fn recursive_lookup(query_socket: &UdpSocket, qname: &str, qtype: QueryType, mut
     }
 }
 
-fn lookup(query_socket: &UdpSocket, qname: &str, qtype: QueryType, server: (Ipv4Addr, u16)) -> Result<DnsPacket, String> {
-    let mut packet = DnsPacket::new();
+fn lookup(
+    query_socket: &UdpSocket,
+    qname: &str,
+    qtype: QueryType,
+    server: (Ipv4Addr, u16),
+) -> Result<DnsPacket, String> {
+    let mut packet = DnsPacket::default();
 
     packet.header.id = 6666;
     packet.header.questions = 1;
@@ -124,11 +138,13 @@ fn lookup(query_socket: &UdpSocket, qname: &str, qtype: QueryType, server: (Ipv4
         .questions
         .push(DnsQuestion::new(qname.to_string(), qtype));
 
-    let mut req_buffer = BytePacketBuffer::new();
+    let mut req_buffer = BytePacketBuffer::default();
     packet.write(&mut req_buffer)?;
-    query_socket.send_to(&req_buffer.buf[0..req_buffer.pos], server).unwrap();
+    query_socket
+        .send_to(&req_buffer.buf[0..req_buffer.pos], server)
+        .unwrap();
 
-    let mut res_buffer = BytePacketBuffer::new();
+    let mut res_buffer = BytePacketBuffer::default();
     query_socket.recv_from(&mut res_buffer.buf).unwrap();
 
     DnsPacket::from_buffer(&mut res_buffer)

@@ -1,7 +1,4 @@
-use crate::{
-    byte_packet_buffer::BytePacketBuffer,
-    res_code::ResultCode,
-};
+use crate::{byte_packet_buffer::BytePacketBuffer, res_code::ResultCode};
 
 #[derive(Clone, Debug)]
 pub struct DnsHeader {
@@ -25,8 +22,14 @@ pub struct DnsHeader {
     pub resource_entries: u16,      // 16 bits
 }
 
+impl Default for DnsHeader {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DnsHeader {
-    pub fn new() -> DnsHeader {
+    fn new() -> DnsHeader {
         DnsHeader {
             id: 0,
 
@@ -82,7 +85,7 @@ impl DnsHeader {
         flags |= self.recursion_desired as u8;
         flags |= (self.truncated_message as u8) << 1;
         flags |= (self.authoritative_answer as u8) << 2;
-        flags |= (self.opcode as u8) << 3;
+        flags |= (self.opcode) << 3;
         flags |= (self.response as u8) << 7;
         buffer.write_u8(flags)?;
 

@@ -1,7 +1,5 @@
 use rdns_resolver_rs::{
-    byte_packet_buffer::BytePacketBuffer,
-    query_type::QueryType,
-    dns_question::DnsQuestion,
+    byte_packet_buffer::BytePacketBuffer, dns_question::DnsQuestion, query_type::QueryType,
 };
 
 #[cfg(test)]
@@ -10,13 +8,15 @@ mod tests {
 
     #[test]
     fn test_write() {
-        let mut buffer = BytePacketBuffer::new();
+        let mut buffer = BytePacketBuffer::default();
         let question = DnsQuestion::new("example.com".to_string(), QueryType::A);
 
         let result = question.write(&mut buffer);
         assert!(result.is_ok());
 
-        let expected = vec![7, b'e', b'x', b'a', b'm', b'p', b'l', b'e', 3, b'c', b'o', b'm', 0, 0, 1, 0, 1];
+        let expected = vec![
+            7, b'e', b'x', b'a', b'm', b'p', b'l', b'e', 3, b'c', b'o', b'm', 0, 0, 1, 0, 1,
+        ];
         assert_eq!(buffer.pos, expected.len());
         for i in 0..expected.len() {
             assert_eq!(expected[i], buffer.buf[i]);
@@ -28,7 +28,7 @@ mod tests {
 
     #[test]
     fn test_read() {
-        let mut buffer = BytePacketBuffer::new();
+        let mut buffer = BytePacketBuffer::default();
         let question = DnsQuestion::new("example.com".to_string(), QueryType::A);
 
         let _ = question.write(&mut buffer);

@@ -1,12 +1,9 @@
+use rdns_resolver_rs::{byte_packet_buffer::BytePacketBuffer, dns_record::DnsRecord};
 use std::net::{Ipv4Addr, Ipv6Addr};
-use rdns_resolver_rs::{
-    dns_record::DnsRecord,
-    byte_packet_buffer::BytePacketBuffer,
-};
 
 #[test]
 fn test_dns_record_a() {
-    let mut buffer = BytePacketBuffer::new();
+    let mut buffer = BytePacketBuffer::default();
     let record = DnsRecord::A {
         domain: "example.com".to_string(),
         addr: Ipv4Addr::new(127, 0, 0, 1),
@@ -22,7 +19,7 @@ fn test_dns_record_a() {
 
 #[test]
 fn test_dns_record_aaaa() {
-    let mut buffer = BytePacketBuffer::new();
+    let mut buffer = BytePacketBuffer::default();
     let record = DnsRecord::AAAA {
         domain: "example.com".to_string(),
         addr: Ipv6Addr::new(0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 1),
@@ -38,7 +35,7 @@ fn test_dns_record_aaaa() {
 
 #[test]
 fn test_dns_record_ns() {
-    let mut buffer = BytePacketBuffer::new();
+    let mut buffer = BytePacketBuffer::default();
     let record = DnsRecord::NS {
         domain: "example.com".to_string(),
         host: "ns1.example.com".to_string(),
@@ -54,7 +51,7 @@ fn test_dns_record_ns() {
 
 #[test]
 fn test_dns_record_cname() {
-    let mut buffer = BytePacketBuffer::new();
+    let mut buffer = BytePacketBuffer::default();
     let record = DnsRecord::CNAME {
         domain: "www.example.com".to_string(),
         host: "example.com".to_string(),
@@ -70,7 +67,7 @@ fn test_dns_record_cname() {
 
 #[test]
 fn test_dns_record_mx() {
-    let mut buffer = BytePacketBuffer::new();
+    let mut buffer = BytePacketBuffer::default();
     let record = DnsRecord::MX {
         domain: "example.com".to_string(),
         priority: 10,
@@ -87,7 +84,7 @@ fn test_dns_record_mx() {
 
 #[test]
 fn test_dns_record_unknown() {
-    let mut buffer = BytePacketBuffer::new();
+    let mut buffer = BytePacketBuffer::default();
     let record = DnsRecord::UNKNOWN {
         domain: "example.com".to_string(),
         qtype: 99,

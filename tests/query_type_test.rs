@@ -7,7 +7,7 @@ fn test_to_num() {
     assert_eq!(QueryType::CNAME.to_num(), 5);
     assert_eq!(QueryType::MX.to_num(), 15);
     assert_eq!(QueryType::AAAA.to_num(), 28);
-    
+
     let unknown_query = QueryType::UNKNOWN(99);
     assert_eq!(unknown_query.to_num(), 99);
 }
@@ -19,7 +19,7 @@ fn test_from_num() {
     assert_eq!(QueryType::from_num(5), QueryType::CNAME);
     assert_eq!(QueryType::from_num(15), QueryType::MX);
     assert_eq!(QueryType::from_num(28), QueryType::AAAA);
-    
+
     let unknown_query = QueryType::from_num(99);
     match unknown_query {
         QueryType::UNKNOWN(num) => assert_eq!(num, 99),
@@ -31,7 +31,7 @@ fn test_from_num() {
 fn test_equality() {
     assert_eq!(QueryType::A, QueryType::A);
     assert_ne!(QueryType::A, QueryType::NS);
-    
+
     let unknown_query1 = QueryType::UNKNOWN(99);
     let unknown_query2 = QueryType::UNKNOWN(99);
     let unknown_query3 = QueryType::UNKNOWN(100);

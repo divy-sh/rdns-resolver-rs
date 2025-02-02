@@ -1,16 +1,12 @@
-use std::net::Ipv4Addr;
 use rdns_resolver_rs::{
-dns_packet::DnsPacket,
-    byte_packet_buffer::BytePacketBuffer,
-    dns_header::DnsHeader,
-    dns_question::DnsQuestion,
-    dns_record::DnsRecord,
-    query_type::QueryType,
+    byte_packet_buffer::BytePacketBuffer, dns_header::DnsHeader, dns_packet::DnsPacket,
+    dns_question::DnsQuestion, dns_record::DnsRecord, query_type::QueryType,
 };
+use std::net::Ipv4Addr;
 
 #[test]
 fn test_dns_packet_creation() {
-    let packet = DnsPacket::new();
+    let packet = DnsPacket::default();
     assert_eq!(packet.questions.len(), 0);
     assert_eq!(packet.answers.len(), 0);
     assert_eq!(packet.authorities.len(), 0);
@@ -19,9 +15,9 @@ fn test_dns_packet_creation() {
 
 #[test]
 fn test_dns_packet_from_buffer() {
-    let mut buffer = BytePacketBuffer::new();
+    let mut buffer = BytePacketBuffer::default();
     // Simulate writing a header to buffer
-    let mut header = DnsHeader::new();
+    let mut header = DnsHeader::default();
     header.questions = 1;
     header.write(&mut buffer).unwrap();
 
@@ -39,11 +35,13 @@ fn test_dns_packet_from_buffer() {
 
 #[test]
 fn test_dns_packet_write() {
-    let mut buffer = BytePacketBuffer::new();
-    let mut packet = DnsPacket::new();
+    let mut buffer = BytePacketBuffer::default();
+    let mut packet = DnsPacket::default();
 
     packet.header.id = 1234;
-    packet.questions.push(DnsQuestion::new("example.com".to_string(), QueryType::A));
+    packet
+        .questions
+        .push(DnsQuestion::new("example.com".to_string(), QueryType::A));
 
     packet.write(&mut buffer).unwrap();
     assert!(buffer.pos > 0); // Ensure data was written
@@ -51,7 +49,7 @@ fn test_dns_packet_write() {
 
 #[test]
 fn test_get_random_a() {
-    let mut packet = DnsPacket::new();
+    let mut packet = DnsPacket::default();
     packet.answers.push(DnsRecord::A {
         domain: "example.com".to_string(),
         addr: Ipv4Addr::new(192, 168, 1, 1),
@@ -64,7 +62,7 @@ fn test_get_random_a() {
 
 #[test]
 fn test_get_resolved_ns() {
-    let mut packet = DnsPacket::new();
+    let mut packet = DnsPacket::default();
     packet.authorities.push(DnsRecord::NS {
         domain: "example.com".to_string(),
         host: "ns1.example.com".to_string(),
@@ -82,7 +80,7 @@ fn test_get_resolved_ns() {
 
 #[test]
 fn test_get_unresolved_ns() {
-    let mut packet = DnsPacket::new();
+    let mut packet = DnsPacket::default();
     packet.authorities.push(DnsRecord::NS {
         domain: "example.com".to_string(),
         host: "ns1.example.com".to_string(),

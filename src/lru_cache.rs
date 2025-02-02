@@ -47,7 +47,7 @@ impl LRUCache {
 
     pub fn put(&mut self, key: &String, value: &DnsPacket) {
         let ttl = Duration::new(300, 0); // TTL of 300 seconds
-        // If the key already exists, we update the value and move it to the front of the queue
+                                         // If the key already exists, we update the value and move it to the front of the queue
         if let Some(node) = self.map.get(key) {
             let mut node = node.lock().unwrap();
             node.value = value.clone();

@@ -3,9 +3,14 @@ pub struct BytePacketBuffer {
     pub buf: [u8; 512],
     pub pos: usize,
 }
+impl Default for BytePacketBuffer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl BytePacketBuffer {
-    pub fn new() -> BytePacketBuffer {
+    fn new() -> BytePacketBuffer {
         BytePacketBuffer {
             buf: [0; 512],
             pos: 0,
@@ -86,8 +91,7 @@ impl BytePacketBuffer {
                 max_jumps -= 1;
 
                 continue;
-            }
-            else {
+            } else {
                 pos += 1;
 
                 if len == 0 {
@@ -110,7 +114,7 @@ impl BytePacketBuffer {
         }
         Ok(())
     }
-    
+
     pub fn write(&mut self, val: u8) -> Result<(), String> {
         if self.pos >= 512 {
             self.pos = 511;

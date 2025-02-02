@@ -1,9 +1,6 @@
 use std::net::{Ipv4Addr, Ipv6Addr};
 
-use crate::{
-    byte_packet_buffer::BytePacketBuffer,
-    query_type::QueryType,
-};
+use crate::{byte_packet_buffer::BytePacketBuffer, query_type::QueryType};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[allow(dead_code)]
@@ -45,7 +42,7 @@ pub enum DnsRecord {
 impl DnsRecord {
     pub fn read(buffer: &mut BytePacketBuffer) -> Result<DnsRecord, String> {
         let mut domain = String::new();
-        buffer.read_qname( &mut domain)?;
+        buffer.read_qname(&mut domain)?;
 
         let qtype_num = buffer.read_u16()?;
         let qtype = QueryType::from_num(qtype_num);
@@ -60,14 +57,10 @@ impl DnsRecord {
                     ((raw_addr >> 24) & 0xFF) as u8,
                     ((raw_addr >> 16) & 0xFF) as u8,
                     ((raw_addr >> 8) & 0xFF) as u8,
-                    ((raw_addr >> 0) & 0xFF) as u8,
+                    (raw_addr & 0xFF) as u8,
                 );
 
-                Ok(DnsRecord::A {
-                    domain: domain,
-                    addr: addr,
-                    ttl: ttl,
-                })
+                Ok(DnsRecord::A { domain, addr, ttl })
             }
             QueryType::AAAA => {
                 let a = buffer.read_u16()?;
@@ -80,31 +73,19 @@ impl DnsRecord {
                 let h = buffer.read_u16()?;
                 let addr = Ipv6Addr::new(a, b, c, d, e, f, g, h);
 
-                Ok(DnsRecord::AAAA {
-                    domain: domain,
-                    addr: addr,
-                    ttl: ttl,
-                })
+                Ok(DnsRecord::AAAA { domain, addr, ttl })
             }
             QueryType::NS => {
                 let mut host = String::new();
                 buffer.read_qname(&mut host)?;
 
-                Ok(DnsRecord::NS {
-                    domain: domain,
-                    host: host,
-                    ttl: ttl,
-                })
+                Ok(DnsRecord::NS { domain, host, ttl })
             }
             QueryType::CNAME => {
                 let mut host = String::new();
                 buffer.read_qname(&mut host)?;
 
-                Ok(DnsRecord::CNAME {
-                    domain: domain,
-                    host: host,
-                    ttl: ttl,
-                })
+                Ok(DnsRecord::CNAME { domain, host, ttl })
             }
             QueryType::MX => {
                 let priority = buffer.read_u16()?;
@@ -112,20 +93,20 @@ impl DnsRecord {
                 buffer.read_qname(&mut host)?;
 
                 Ok(DnsRecord::MX {
-                    domain: domain,
-                    priority: priority,
-                    host: host,
-                    ttl: ttl,
+                    domain,
+                    priority,
+                    host,
+                    ttl,
                 })
             }
             QueryType::UNKNOWN(_) => {
                 buffer.step(data_len as usize)?;
 
                 Ok(DnsRecord::UNKNOWN {
-                    domain: domain,
+                    domain,
                     qtype: qtype_num,
-                    data_len: data_len,
-                    ttl: ttl,
+                    data_len,
+                    ttl,
                 })
             }
         }
@@ -134,7 +115,7 @@ impl DnsRecord {
     pub fn write(&self, buffer: &mut BytePacketBuffer) -> Result<(), String> {
         match self {
             DnsRecord::A { domain, addr, ttl } => {
-                buffer.write_qname(&domain)?;
+                buffer.write_qname(domain)?;
                 buffer.write_u16(QueryType::A.to_num())?;
                 buffer.write_u16(1)?; // class
                 buffer.write_u32(*ttl)?;
@@ -145,7 +126,7 @@ impl DnsRecord {
                 buffer.write_u8(addr.octets()[3])?;
             }
             DnsRecord::AAAA { domain, addr, ttl } => {
-                buffer.write_qname(&domain)?;
+                buffer.write_qname(domain)?;
                 buffer.write_u16(QueryType::AAAA.to_num())?;
                 buffer.write_u16(1)?; // class
                 buffer.write_u32(*ttl)?;
@@ -155,21 +136,21 @@ impl DnsRecord {
                 }
             }
             DnsRecord::NS { domain, host, ttl } => {
-                buffer.write_qname(&domain)?;
+                buffer.write_qname(domain)?;
                 buffer.write_u16(QueryType::NS.to_num())?;
                 buffer.write_u16(1)?; // class
                 buffer.write_u32(*ttl)?;
 
                 buffer.write_u16(host.len() as u16)?;
-                buffer.write_qname(&host)?;
+                buffer.write_qname(host)?;
             }
             DnsRecord::CNAME { domain, host, ttl } => {
-                buffer.write_qname(&domain)?;
+                buffer.write_qname(domain)?;
                 buffer.write_u16(QueryType::CNAME.to_num())?;
                 buffer.write_u16(1)?; // class
                 buffer.write_u32(*ttl)?;
                 buffer.write_u16(host.len() as u16)?;
-                buffer.write_qname(&host)?;
+                buffer.write_qname(host)?;
             }
             DnsRecord::MX {
                 domain,
@@ -177,13 +158,13 @@ impl DnsRecord {
                 host,
                 ttl,
             } => {
-                buffer.write_qname(&domain)?;
+                buffer.write_qname(domain)?;
                 buffer.write_u16(QueryType::MX.to_num())?;
                 buffer.write_u16(1)?; // class
                 buffer.write_u32(*ttl)?;
                 buffer.write_u16(2 + host.len() as u16)?;
                 buffer.write_u16(*priority)?;
-                buffer.write_qname(&host)?;
+                buffer.write_qname(host)?;
             }
             DnsRecord::UNKNOWN {
                 domain,
@@ -191,13 +172,12 @@ impl DnsRecord {
                 data_len,
                 ttl,
             } => {
-                buffer.write_qname(&domain)?;
+                buffer.write_qname(domain)?;
                 buffer.write_u16(*qtype)?;
                 buffer.write_u16(1)?; // class
                 buffer.write_u32(*ttl)?;
                 buffer.write_u16(*data_len)?;
             }
-            
         }
 
         Ok(())

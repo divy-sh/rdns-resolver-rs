@@ -1,11 +1,8 @@
 use std::net::Ipv4Addr;
 
 use crate::{
-    byte_packet_buffer::BytePacketBuffer,
-    dns_header::DnsHeader,
-    dns_question::DnsQuestion,
-    dns_record::DnsRecord,
-    query_type::QueryType,
+    byte_packet_buffer::BytePacketBuffer, dns_header::DnsHeader, dns_question::DnsQuestion,
+    dns_record::DnsRecord, query_type::QueryType,
 };
 
 #[derive(Clone, Debug)]
@@ -17,10 +14,16 @@ pub struct DnsPacket {
     pub resources: Vec<DnsRecord>,
 }
 
+impl Default for DnsPacket {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DnsPacket {
-    pub fn new() -> DnsPacket {
+    fn new() -> DnsPacket {
         DnsPacket {
-            header: DnsHeader::new(),
+            header: DnsHeader::default(),
             questions: Vec::new(),
             answers: Vec::new(),
             authorities: Vec::new(),
@@ -29,7 +32,7 @@ impl DnsPacket {
     }
 
     pub fn from_buffer(buffer: &mut BytePacketBuffer) -> Result<DnsPacket, String> {
-        let mut result = DnsPacket::new();
+        let mut result = DnsPacket::default();
         result.header.read(buffer)?;
 
         for _ in 0..result.header.questions {
@@ -77,11 +80,13 @@ impl DnsPacket {
     }
 
     pub fn get_random_a(&self) -> Option<Ipv4Addr> {
-        self.answers.iter().filter_map(|record| match record {
-            DnsRecord::A { addr, .. } => Some(*addr),
-            _ => None,
-        })
-        .next()
+        self.answers
+            .iter()
+            .filter_map(|record| match record {
+                DnsRecord::A { addr, .. } => Some(*addr),
+                _ => None,
+            })
+            .next()
     }
 
     fn get_ns<'a>(&'a self, qname: &'a str) -> impl Iterator<Item = (&'a str, &'a str)> {
@@ -104,13 +109,11 @@ impl DnsPacket {
                         _ => None,
                     })
             })
-            .map(|addr| *addr)
+            .copied()
             .next()
     }
 
     pub fn get_unresolved_ns<'a>(&'a self, qname: &'a str) -> Option<&'a str> {
-        self.get_ns(qname)
-            .map(|(_, host)| host)
-            .next()
+        self.get_ns(qname).map(|(_, host)| host).next()
     }
 }

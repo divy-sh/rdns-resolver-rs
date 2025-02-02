@@ -1,7 +1,4 @@
-use crate::{
-    byte_packet_buffer::BytePacketBuffer,
-    query_type::QueryType,
-};
+use crate::{byte_packet_buffer::BytePacketBuffer, query_type::QueryType};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DnsQuestion {
@@ -11,10 +8,7 @@ pub struct DnsQuestion {
 
 impl DnsQuestion {
     pub fn new(name: String, qtype: QueryType) -> DnsQuestion {
-        DnsQuestion {
-            name: name,
-            qtype: qtype,
-        }
+        DnsQuestion { name, qtype }
     }
 
     pub fn read(&mut self, buffer: &mut BytePacketBuffer) -> Result<(), String> {

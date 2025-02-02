@@ -1,12 +1,10 @@
 use rdns_resolver_rs::{
-    dns_header::DnsHeader,
-    byte_packet_buffer::BytePacketBuffer,
-    res_code::ResultCode,
+    byte_packet_buffer::BytePacketBuffer, dns_header::DnsHeader, res_code::ResultCode,
 };
 
 #[test]
 fn test_dns_header_read_write() {
-    let mut buffer = BytePacketBuffer::new();
+    let mut buffer = BytePacketBuffer::default();
     let header = DnsHeader {
         id: 1234,
         recursion_desired: true,
@@ -28,7 +26,7 @@ fn test_dns_header_read_write() {
     assert!(header.write(&mut buffer).is_ok());
     buffer.pos = 0;
 
-    let mut new_header = DnsHeader::new();
+    let mut new_header = DnsHeader::default();
     assert!(new_header.read(&mut buffer).is_ok());
 
     assert_eq!(header.id, new_header.id);
@@ -44,6 +42,9 @@ fn test_dns_header_read_write() {
     assert_eq!(header.recursion_available, new_header.recursion_available);
     assert_eq!(header.questions, new_header.questions);
     assert_eq!(header.answers, new_header.answers);
-    assert_eq!(header.authoritative_entries, new_header.authoritative_entries);
+    assert_eq!(
+        header.authoritative_entries,
+        new_header.authoritative_entries
+    );
     assert_eq!(header.resource_entries, new_header.resource_entries);
 }
