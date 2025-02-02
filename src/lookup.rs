@@ -89,7 +89,6 @@ fn recursive_lookup(
         let ns_copy = ns;
         let server = (ns_copy, 53);
         let response = lookup(query_socket, qname, qtype, server)?;
-        println!("{:?}", response);
         if response.header.rescode == ResultCode::NXDOMAIN {
             return Ok(response);
         }
