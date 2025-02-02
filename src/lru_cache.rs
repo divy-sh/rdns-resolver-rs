@@ -3,6 +3,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use crate::dns_packet::DnsPacket;
+use crate::dns_record::DnsRecord;
 
 #[derive(Debug)]
 pub struct LRUCache {
@@ -46,12 +47,25 @@ impl LRUCache {
     }
 
     pub fn put(&mut self, key: &String, value: &DnsPacket) {
-        let ttl = Duration::new(300, 0); // TTL of 300 seconds
-                                         // If the key already exists, we update the value and move it to the front of the queue
+        let ttl = value
+            .answers
+            .iter()
+            .map(|answer| match answer {
+                DnsRecord::A { ttl, .. }
+                | DnsRecord::NS { ttl, .. }
+                | DnsRecord::CNAME { ttl, .. }
+                | DnsRecord::MX { ttl, .. }
+                | DnsRecord::AAAA { ttl, .. }
+                | DnsRecord::UNKNOWN { ttl, .. } => *ttl,
+            })
+            .min()
+            .unwrap_or(0);
+
+        // If the key already exists, we update the value and move it to the front of the queue
         if let Some(node) = self.map.get(key) {
             let mut node = node.lock().unwrap();
             node.value = value.clone();
-            node.time = Instant::now() + ttl;
+            node.time = Instant::now() + Duration::from_secs(ttl as u64);
             self.order.retain(|x| x != key);
             self.order.push_front(key.clone());
         } else {
@@ -66,7 +80,7 @@ impl LRUCache {
                 key.clone(),
                 Arc::new(Mutex::new(Node {
                     value: value.clone(),
-                    time: Instant::now() + ttl,
+                    time: Instant::now() + Duration::from_secs(ttl as u64),
                 })),
             );
             self.order.push_front(key.clone());

@@ -32,5 +32,10 @@ Once built, you can start the DNS resolver. The server will start listening on t
 
 - Figure out why some of the root name servers don't respond.
 - generalize the code by extracting the placeholder configurations out of the code, into a config file.
-- More tests.
-- Concurrency.
+
+## Release Notes
+
+# 0.1.1
+
+- Implemented concurrency, but since the project was meant for learning how dns resolvers work, it may or may not work properly and may produced unexpected results.
+- Added remaining tests for LRU Cache implementation.
