@@ -156,6 +156,8 @@ fn populate_dns_packet(packet: &mut DnsPacket, question: DnsQuestion, result: &D
     packet.questions.push(question);
     packet.header.rescode = result.header.rescode;
     packet.header.answers = result.answers.len() as u16;
+    packet.header.authoritative_entries = result.authorities.len() as u16;
+    packet.header.resource_entries = result.resources.len() as u16;
     for rec in result.answers.iter() {
         println!("Answer: {:?}", rec);
         packet.answers.push(rec.clone());
