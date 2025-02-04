@@ -137,19 +137,25 @@ impl DnsRecord {
             }
             DnsRecord::NS { domain, host, ttl } => {
                 buffer.write_qname(domain)?;
-                buffer.write_u16(QueryType::NS.to_num())?;
-                buffer.write_u16(1)?; // class
+                buffer.write_u16(QueryType::CNAME.to_num())?;
+                buffer.write_u16(1)?;
                 buffer.write_u32(*ttl)?;
-                buffer.write_u16(host.len() as u16)?;
+                let pos = buffer.pos;
+                buffer.write_u16(0)?;
                 buffer.write_qname(host)?;
+                let size = buffer.pos - (pos + 2);
+                buffer.set_u16(pos, size as u16)?;
             }
             DnsRecord::CNAME { domain, host, ttl } => {
                 buffer.write_qname(domain)?;
                 buffer.write_u16(QueryType::CNAME.to_num())?;
-                buffer.write_u16(1)?; // class
+                buffer.write_u16(1)?;
                 buffer.write_u32(*ttl)?;
-                buffer.write_u16(host.len() as u16)?;
+                let pos = buffer.pos;
+                buffer.write_u16(0)?;
                 buffer.write_qname(host)?;
+                let size = buffer.pos - (pos + 2);
+                buffer.set_u16(pos, size as u16)?;
             }
             DnsRecord::MX {
                 domain,
