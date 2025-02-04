@@ -137,7 +137,7 @@ impl DnsRecord {
             }
             DnsRecord::NS { domain, host, ttl } => {
                 buffer.write_qname(domain)?;
-                buffer.write_u16(QueryType::CNAME.to_num())?;
+                buffer.write_u16(QueryType::NS.to_num())?;
                 buffer.write_u16(1)?;
                 buffer.write_u32(*ttl)?;
                 let pos = buffer.pos;
