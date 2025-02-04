@@ -41,7 +41,7 @@ The server will start listening on the port (2053). You can configure the server
 - Figure out why some of the root name servers don't respond.
 - Figure out why apple.com works but adding www at the front returns REFUSED ResCode.
 - generalize the code by extracting the placeholder configurations out of the code, into a config file.
-- support multiple questions
+- implement string compression
 
 ## Release Notes
 
