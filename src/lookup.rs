@@ -7,7 +7,7 @@ use std::{
 
 use crate::{
     byte_packet_buffer::BytePacketBuffer, dns_packet::DnsPacket, dns_question::DnsQuestion,
-    dns_record::DnsRecord, lru_cache::LRUCache, query_type::QueryType, res_code::ResultCode,
+    lru_cache::LRUCache, query_type::QueryType, res_code::ResultCode,
     utils::ROOT_NAME_SERVERS,
 };
 
@@ -91,19 +91,11 @@ fn recursive_lookup(
         let ns_copy = ns;
         let server = (ns_copy, 53);
         let response = lookup(query_socket, qname, qtype, server)?;
-        if response.header.rescode == ResultCode::NXDOMAIN {
+        if !response.answers.is_empty() && response.header.rescode == ResultCode::NOERROR {
             return Ok(response);
         }
-        if !response.answers.is_empty() && response.header.rescode == ResultCode::NOERROR {
-            for answer in &response.answers {
-                match answer {
-                    DnsRecord::A { .. } | DnsRecord::AAAA { .. } => return Ok(response),
-                    DnsRecord::CNAME { host, .. } => {
-                        return recursive_lookup(query_socket, host, qtype, ns);
-                    }
-                    _ => continue,
-                }
-            }
+        if response.header.rescode == ResultCode::NXDOMAIN {
+            return Ok(response);
         }
         if let Some(new_ns) = response.get_resolved_ns(qname) {
             ns = new_ns;

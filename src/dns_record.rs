@@ -140,7 +140,6 @@ impl DnsRecord {
                 buffer.write_u16(QueryType::NS.to_num())?;
                 buffer.write_u16(1)?; // class
                 buffer.write_u32(*ttl)?;
-
                 buffer.write_u16(host.len() as u16)?;
                 buffer.write_qname(host)?;
             }
