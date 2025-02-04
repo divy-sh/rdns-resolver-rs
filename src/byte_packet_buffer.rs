@@ -117,7 +117,6 @@ impl BytePacketBuffer {
 
     pub fn write(&mut self, val: u8) -> Result<(), String> {
         if self.pos >= 512 {
-            self.pos = 511;
             return Err("Buffer overflow".to_string());
         }
         self.buf[self.pos] = val;
@@ -145,7 +144,7 @@ impl BytePacketBuffer {
     pub fn write_qname(&mut self, qname: &str) -> Result<(), String> {
         for part in qname.split('.') {
             if part.len() > 63 {
-                return Err("DNS lable too long".to_string());
+                return Err("DNS label too long".to_string());
             }
             self.write(part.len() as u8)?;
             for b in part.bytes() {
