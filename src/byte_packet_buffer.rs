@@ -1,8 +1,12 @@
+use std::collections::HashMap;
+
 #[derive(Clone)]
 pub struct BytePacketBuffer {
     pub buf: [u8; 512],
     pub pos: usize,
+    pub word_hist: HashMap<String, usize>,
 }
+
 impl Default for BytePacketBuffer {
     fn default() -> Self {
         Self::new()
@@ -14,6 +18,7 @@ impl BytePacketBuffer {
         BytePacketBuffer {
             buf: [0; 512],
             pos: 0,
+            word_hist: HashMap::new(),
         }
     }
 
@@ -146,9 +151,14 @@ impl BytePacketBuffer {
             if part.len() > 63 {
                 return Err("DNS label too long".to_string());
             }
-            self.write(part.len() as u8)?;
-            for b in part.bytes() {
-                self.write(b)?;
+            if let Some(&offset) = self.word_hist.get(part) {
+                self.write_u8(0xC0)?;
+                self.write_u8(offset as u8)?;
+            } else {
+                self.write(part.len() as u8)?;
+                for b in part.bytes() {
+                    self.write(b)?;
+                }
             }
         }
         self.write(0)?;
