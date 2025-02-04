@@ -99,7 +99,6 @@ fn recursive_lookup(
                 match answer {
                     DnsRecord::A { .. } | DnsRecord::AAAA { .. } => return Ok(response),
                     DnsRecord::CNAME { host, .. } => {
-                        println!("CNAME found: Resolving {}", host);
                         return recursive_lookup(query_socket, host, qtype, ns);
                     }
                     _ => continue,
