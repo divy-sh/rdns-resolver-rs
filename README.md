@@ -39,7 +39,6 @@ The server will start listening on the port (2053). You can configure the server
 ## TODO
 
 - Figure out why some of the root name servers don't respond.
-- Figure out why apple.com works but adding www at the front returns REFUSED ResCode.
 - generalize the code by extracting the placeholder configurations out of the code, into a config file.
 - implement string compression
 
@@ -53,3 +52,4 @@ The server will start listening on the port (2053). You can configure the server
 ### 0.1.2
 
 - Implement DNS name compression
+- Fix REFUSED RCODE on querying some addresses that return CNAME.
