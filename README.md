@@ -49,3 +49,7 @@ The server will start listening on the port (2053). You can configure the server
 
 - Implement concurrency, but since the project was meant for learning how dns resolvers work, it may or may not work properly and may produce unexpected results.
 - Add remaining tests for LRU Cache implementation.
+
+### 0.1.2
+
+- Implement DNS name compression
