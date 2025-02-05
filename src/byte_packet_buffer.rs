@@ -4,7 +4,7 @@ use std::collections::HashMap;
 pub struct BytePacketBuffer {
     pub buf: [u8; 512],
     pub pos: usize,
-    pub word_hist: HashMap<String, usize>,
+    pub qname_pointer: HashMap<String, usize>,
 }
 
 impl Default for BytePacketBuffer {
@@ -18,7 +18,7 @@ impl BytePacketBuffer {
         BytePacketBuffer {
             buf: [0; 512],
             pos: 0,
-            word_hist: HashMap::new(),
+            qname_pointer: HashMap::new(),
         }
     }
 
@@ -75,9 +75,7 @@ impl BytePacketBuffer {
         let mut pos = self.pos();
         let mut jumped = false;
         let mut max_jumps = 10;
-
         let mut delimiter = "";
-
         loop {
             if max_jumps < 0 {
                 return Err(format!("Max jump limit of {} exceeded", max_jumps).to_string());
@@ -87,33 +85,24 @@ impl BytePacketBuffer {
                 if !jumped {
                     self.seek(pos + 2)?;
                 }
-
                 let b2 = self.get(pos + 1)? as u16;
                 let offset = (((len as u16) ^ 0xC0) << 8) | b2;
                 pos = offset as usize;
-
                 jumped = true;
                 max_jumps -= 1;
-
                 continue;
             } else {
                 pos += 1;
-
                 if len == 0 {
                     break;
                 }
-
                 outstr.push_str(delimiter);
-
                 let str_buffer = self.get_range(pos, len as usize)?;
                 outstr.push_str(&String::from_utf8_lossy(str_buffer).to_lowercase());
-
                 delimiter = ".";
-
                 pos += len as usize;
             }
         }
-
         if !jumped {
             self.seek(pos)?;
         }
@@ -147,22 +136,21 @@ impl BytePacketBuffer {
     }
 
     pub fn write_qname(&mut self, qname: &str) -> Result<(), String> {
-        for part in qname.split('.') {
-            if part.len() > 63 {
-                return Err("DNS label too long".to_string());
-            }
-            if let Some(&offset) = self.word_hist.get(part) {
-                self.write_u8(0xC0)?;
-                self.write_u8(offset as u8)?;
-            } else {
-                self.word_hist.insert(part.to_string(), self.pos);
+        if let Some(pointer) = self.qname_pointer.get(qname) {
+            self.write_u16(0xc000 | *pointer as u16)?;
+        } else {
+            self.qname_pointer.insert(qname.to_string(), self.pos);
+            for part in qname.split('.') {
+                if part.len() > 63 {
+                    return Err("DNS label too long".to_string());
+                }
                 self.write(part.len() as u8)?;
                 for b in part.bytes() {
                     self.write(b)?;
                 }
             }
+            self.write(0)?;
         }
-        self.write(0)?;
         Ok(())
     }
 
