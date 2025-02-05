@@ -155,6 +155,7 @@ impl BytePacketBuffer {
                 self.write_u8(0xC0)?;
                 self.write_u8(offset as u8)?;
             } else {
+                self.word_hist.insert(part.to_string(), self.pos);
                 self.write(part.len() as u8)?;
                 for b in part.bytes() {
                     self.write(b)?;
