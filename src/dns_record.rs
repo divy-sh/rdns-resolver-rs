@@ -184,7 +184,6 @@ impl DnsRecord {
                 buffer.write_u16(*data_len)?;
             }
         }
-
         Ok(())
     }
 }
