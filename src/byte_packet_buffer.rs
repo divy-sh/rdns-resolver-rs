@@ -157,12 +157,12 @@ impl BytePacketBuffer {
             for &byte in label_bytes {
                 self.write(byte)?;
             }
-            self.qname_pointer.insert(remaining.to_string(), original_pos);
             current_pos += label_end + 1;
             if current_pos >= qname_len {
                 break;
             }
         }
+        self.qname_pointer.insert(qname.to_string(), original_pos);
         self.write_u8(0)
     }
 
