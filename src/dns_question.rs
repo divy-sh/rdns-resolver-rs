@@ -20,15 +20,7 @@ impl DnsQuestion {
     }
 
     pub fn write(&self, buffer: &mut BytePacketBuffer) -> Result<(), String> {
-        let parts: Vec<&str> = self.name.split('.').collect();
-        for part in parts {
-            buffer.write(part.len() as u8)?;
-            for b in part.bytes() {
-                buffer.write(b)?;
-            }
-        }
-        buffer.write(0)?;
-
+        buffer.write_qname(&self.name)?;
         buffer.write_u16(self.qtype.to_num())?;
         buffer.write_u16(1)?; // class
 
