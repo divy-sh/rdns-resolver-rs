@@ -136,22 +136,34 @@ impl BytePacketBuffer {
     }
 
     pub fn write_qname(&mut self, qname: &str) -> Result<(), String> {
-        if let Some(pointer) = self.qname_pointer.get(qname) {
-            self.write_u16(0xc000 | *pointer as u16)?;
-        } else {
-            self.qname_pointer.insert(qname.to_string(), self.pos);
-            for part in qname.split('.') {
-                if part.len() > 63 {
-                    return Err("DNS label too long".to_string());
-                }
-                self.write(part.len() as u8)?;
-                for b in part.bytes() {
-                    self.write(b)?;
-                }
+        let original_pos = self.pos;
+        let mut current_pos = 0;
+        let qname_bytes = qname.as_bytes();
+        let qname_len = qname_bytes.len();
+        while current_pos < qname_len {
+            let remaining = &qname[current_pos..];
+            if let Some(&pointer) = self.qname_pointer.get(remaining) {
+                return self.write_u16(0xc000 | pointer as u16);
             }
-            self.write(0)?;
+            let label_end = qname_bytes[current_pos..]
+                .iter()
+                .position(|&b| b == b'.')
+                .map_or(qname_len - current_pos, |p| p);
+            if label_end > 63 {
+                return Err("DNS label too long".to_string());
+            }
+            self.write_u8(label_end as u8)?;
+            let label_bytes = &qname_bytes[current_pos..current_pos + label_end];
+            for &byte in label_bytes {
+                self.write(byte)?;
+            }
+            self.qname_pointer.insert(remaining.to_string(), original_pos);
+            current_pos += label_end + 1;
+            if current_pos >= qname_len {
+                break;
+            }
         }
-        Ok(())
+        self.write_u8(0)
     }
 
     pub fn set(&mut self, pos: usize, val: u8) -> Result<(), String> {
