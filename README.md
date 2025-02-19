@@ -36,6 +36,10 @@ To start the DNS resolver, run the following command.
 ```
 The server will start listening on the port (2053). You can configure the server port by changing the REQ_PORT in utils.rs.
 
+To send a query to the server, run the following command in a new terminal window.
+```bash
+dig @[IP ADDR] -p [PORT] [www.test.com]
+```
 ## TODO
 
 - Figure out why some of the root name servers don't respond.
