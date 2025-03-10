@@ -1,3 +1,7 @@
+# animus
+[![Build and Test](https://github.com/divy-sh/rdns-resolver-rs/actions/workflows/go.yml/badge.svg)](https://github.com/divy-sh/rdns-resolver-rs/actions/workflows/rust.yml)
+[![License](https://img.shields.io/badge/License-GNU20GPL-blue?style=flat-square)](https://raw.githubusercontent.com/divy-sh/rdns-resolver-rs/master/LICENSE)
+
 # rdns-resolver-rs
 
 A DNS resolver implemented in Rust, designed to handle DNS queries efficiently. This project showcases the power of Rust in building network services with safety, speed, and concurrency.
